@@ -1,9 +1,10 @@
 package assignmnet01;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LeafNode extends Node {
+public class LeafNode extends Node implements Serializable {
     private List<Integer> keys;
     private List<Integer> values;
     private LeafNode next;
@@ -19,50 +20,41 @@ public class LeafNode extends Node {
 
     public List<Integer> getKeys() { return this.keys; }
 
-//    @Override
     public List<Node> getChildren() {
         return null;
     }
 
-//    @Override
     public Node insert(int key, int value) {
-        // 1. 중복키 확인 -> 없어도 됨
         int p = 0;
         while (p < keys.size() && keys.get(p) < key) {
             p++;
         }
 
-        if (p < keys.size() && keys.get(p) == key) {
-            System.out.println("중복키는 삽입할 수 없습니다");
-            return this;
-        }
-
-        // 2. 키와 값을 리스트에 삽입 (정렬된 상태 유지)
+        // 1. 키와 값을 리스트에 삽입 (정렬된 상태 유지)
         keys.add(p, key);
         values.add(p, value);
 
-        // 3. 노드가 가득 찼다면 분할
+        // 2. 노드가 가득 찼다면 분할
         if (keys.size() > size) {
             return split();
         }
-
-        System.out.println("리프노드에 삽입: key = " + key + ", value = " + value);
         return this; // 분할이 필요하지 않으면 현재 노드를 반환
     }
 
     private Node split() {
+        // 1. 중간값 구하기
         int mid = keys.size() / 2;
 
-        // 새로운 리프 노드 생성 후 절반의 키와 값 이동
+        // 2. 새로운 리프 노드 생성 후 절반의 키와 값 이동
         LeafNode newLeaf = new LeafNode(this.size);
         newLeaf.keys.addAll(keys.subList(mid, keys.size()));
         newLeaf.values.addAll(values.subList(mid, values.size()));
 
-        // 기존 노드에서 이동된 키와 값 제거
+        // 3. 기존 노드에서 이동된 키와 값 제거
         keys.subList(mid, keys.size()).clear();
         values.subList(mid, values.size()).clear();
 
-        // 새로운 리프 노드를 현재 노드의 next로 설정
+        // 4. 새로운 리프 노드를 현재 노드의 next로 설정
         newLeaf.next = this.next;
         if (this.next != null) {
             this.next.prev = newLeaf;
@@ -70,21 +62,18 @@ public class LeafNode extends Node {
         this.next = newLeaf;
         newLeaf.prev = this;
 
-        // 세로운 부모 노드를 반환 (부모 노드에서 첫 번째 키를 받음)
+        // 5. 세로운 부모 노드를 반환 (부모 노드에서 첫 번째 키를 받음)
         NonLeafNode parent = new NonLeafNode(size);
-        parent.addKeys(newLeaf.keys.get(0));
-        parent.addChildren(this);
-        parent.addChildren(newLeaf);
+        parent.getKeys().add(newLeaf.keys.get(0));
+        parent.getChildren().add(this);
+        parent.getChildren().add(newLeaf);
 
-        System.out.println("리프노드 분할했습니다. 새로운 리프노드를 생성했습니다.");
         return parent; // 부모노드반환
     }
 
-    @Override
     public Node delete(int key) {
-        int p = keys.indexOf(key);
-
         // 1. 키가 있는지 확인
+        int p = keys.indexOf(key);
         if (p == -1) {
             System.out.println("키를 찾을 수 없습니다.");
             return this;
@@ -93,7 +82,7 @@ public class LeafNode extends Node {
         // 2. 키와 값을 리스트에서 제거
         keys.remove(p);
         values.remove(p);
-
+        System.out.println("a");
         // 3. 언더플로우
         if (keys.size() < (size / 2)) {
             if (this.next != null && this.next.keys.size() > (size / 2)) {
@@ -111,16 +100,22 @@ public class LeafNode extends Node {
             }
         }
 
-        System.out.println("리프노드에서 삭제: key = " + key);
         return this;
     }
 
     private void borrowFromNext() {
-        int borrowdKey = next.keys.remove(0);
-        int borrowedValue = next.values.remove(0);
+        System.out.println("borrowFromNext 호출됨");
+        System.out.println("현재 노드 키: " + keys);
+        System.out.println("오른쪽 형제 노드 키: " + next.keys);
+        if (next != null && next.keys.size() > 0) {
+            int borrowdKey = next.keys.remove(0);
+            int borrowedValue = next.values.remove(0);
 
-        this.keys.add(borrowdKey);
-        this.values.add(borrowedValue);
+            this.keys.add(borrowdKey);
+            this.values.add(borrowedValue);
+            System.out.println("현재 노드 키: " + keys);
+            System.out.println("오른쪽 형제 노드 키: " + next.keys);
+        }
     }
 
     private Node mergeWithNext() {
@@ -130,7 +125,6 @@ public class LeafNode extends Node {
         if (this.next != null) {
             this.next.prev = this;
         }
-
         return this;
     }
 
@@ -149,29 +143,32 @@ public class LeafNode extends Node {
         if (this.next != null) {
             this.next.prev = prev;
         }
-
         return this;
     }
 
-//    @Override
     public Integer search(int key) {
         int p = keys.indexOf(key);
         if (p != -1) {
+            System.out.println(values.get(p));
             return values.get(p);
+        } else {
+            System.out.println("NOT FOUND");
+            return null;
         }
-        System.out.println("리프노드에서 검색: key = " + key);
-        return null;
     }
 
-//    @Override
     public List<Integer> rangeSearch(int startKey, int endKey) {
-        List<Integer> result = new ArrayList<>();
         for (int i = 0; i < keys.size(); i++) {
             if (keys.get(i) >= startKey && keys.get(i) <= endKey) {
-                result.add(values.get(i));
+                System.out.print(keys.get(i)+","+values.get(i));
+                System.out.println();
             }
         }
-        System.out.println("리프노드에서 범위 검색: " + startKey + " ~ " + endKey);
-        return result;
+
+        if (next != null && keys.get(keys.size() - 1) <= endKey) {
+            return next.rangeSearch(startKey, endKey);
+        }
+
+        return new ArrayList<>();
     }
 }

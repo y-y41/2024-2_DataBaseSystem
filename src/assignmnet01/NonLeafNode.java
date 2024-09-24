@@ -1,9 +1,10 @@
 package assignmnet01;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class NonLeafNode extends Node {
+public class NonLeafNode extends Node implements Serializable {
     private List<Integer> keys;
     private List<Node> children;
 
@@ -12,20 +13,11 @@ public class NonLeafNode extends Node {
         this.keys = new ArrayList<>();
         this.children = new ArrayList<>();
     }
-
-    public void addKeys(Integer key) {
-        this.keys.add(key);
-    }
-
-    public void addChildren(Node child) {
-        this.children.add(child);
-    }
     
     public List<Integer> getKeys() { return this.keys; }
 
     public List<Node> getChildren() { return this.children; }
 
-    @Override
     public Node insert(int key, int value) {
         int p = 0;
         while (p < keys.size() && keys.get(p) < key) {
@@ -33,6 +25,7 @@ public class NonLeafNode extends Node {
         }
 
         Node child = children.get(p);
+        // 재귀
         Node newChild = child.insert(key, value);
 
         // 자식 노드가 분할되어 새로운 부모 노드가 반환된 경우 처리
@@ -46,7 +39,6 @@ public class NonLeafNode extends Node {
             }
         }
 
-        System.out.println("논리프노드에 삽입: key = " + key + ", value = " + value);
         return this;
     }
 
@@ -57,19 +49,17 @@ public class NonLeafNode extends Node {
         newNonLeaf.keys.addAll(keys.subList(mid + 1, keys.size()));
         newNonLeaf.children.addAll(children.subList(mid + 1, children.size()));
 
+        NonLeafNode parent = new NonLeafNode(size);
+        parent.getKeys().add(keys.get(mid));
+
         keys.subList(mid, keys.size()).clear();
         children.subList(mid + 1, children.size()).clear();
 
-        NonLeafNode parent = new NonLeafNode(size);
-        parent.addKeys(keys.get(mid));
-        parent.addChildren(this);
-        parent.addChildren(newNonLeaf);
-
-        System.out.println("논리프 노드를 분할 헀습니다.");
+        parent.getChildren().add(this);
+        parent.getChildren().add(newNonLeaf);
         return parent;
     }
 
-    @Override
     public Node delete(int key) {
         int p = 0;
         while (p < keys.size() && keys.get(p) < key) {
@@ -96,7 +86,6 @@ public class NonLeafNode extends Node {
             }
         }
 
-        System.out.println("논리프노드에서 삭제: key = " + key);
         return this;
     }
 
@@ -149,20 +138,31 @@ public class NonLeafNode extends Node {
         return this;
     }
 
-    @Override
     public Integer search(int key) {
+        List<Integer> searchList = new ArrayList<>();
+        for (int i =0; i<keys.size(); i++) {
+            searchList.add(keys.get(i));
+        }
+        for (int i =0; i<searchList.size(); i++) {
+            System.out.print(searchList.get(i));
+            if (i < searchList.size() -1)
+                System.out.print(',');
+        }
+        System.out.println();
+
         int p = 0;
-        while (p < keys.size() && keys.get(p) < key) {
+        while (p < keys.size() && keys.get(p) <= key) {
             p++;
         }
-        System.out.println("논리프노드에서 검색: key = " + key);
-        return children.get(p).search(key);
 
+        return children.get(p).search(key);
     }
 
-    @Override
     public List<Integer> rangeSearch(int startKey, int endKey) {
-        System.out.println("논리프노드에서 범위 검색: " + startKey + " ~ " + endKey);
-        return new ArrayList<>();
+        int p = 0;
+        while (p < keys.size() && keys.get(p) <= startKey) {
+            p++;
+        }
+        return children.get(p).rangeSearch(startKey, endKey);
     }
 }

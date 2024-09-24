@@ -1,8 +1,9 @@
 package assignmnet01;
 
+import java.io.Serializable;
 import java.util.List;
 
-public abstract class Node {
+public abstract class Node implements Serializable {
     protected int size;
     protected boolean isLeaf;
 

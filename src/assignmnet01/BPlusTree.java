@@ -1,8 +1,9 @@
 package assignmnet01;
 
+import java.io.*;
 import java.util.List;
 
-public class BPlusTree {
+public class BPlusTree implements Serializable {
     private Node root;
     private int size; //  각 노드의 최대 크기
 
@@ -14,7 +15,7 @@ public class BPlusTree {
     public void insert(int key, int value) {
         Node newRoot = root.insert(key, value);
         if (newRoot != root) { // 루트노드가 분할된 경우, 새로운 루트 설정
-            this.root = newRoot;
+            root = newRoot;
         }
     }
 
@@ -30,7 +31,16 @@ public class BPlusTree {
         return root.rangeSearch(startkey, endKey);
     }
 
-    public int getSize() {
-        return size;
-    }
+//    public void saveFile(String file) throws IOException {
+//        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file))) {
+//            out.writeObject(this);
+//            System.out.println("트리 상태가 저장됨");
+//        }
+//    }
+//
+//    public static BPlusTree loadFile(String file) throws IOException, ClassNotFoundException {
+//        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(file))) {
+//            return (BPlusTree) in.readObject();
+//        }
+//    }
 }
