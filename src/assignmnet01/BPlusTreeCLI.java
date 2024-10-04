@@ -1,113 +1,100 @@
 package assignmnet01;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Scanner;
 
 public class BPlusTreeCLI {
-    private static BPlusTree bPlusTree;
+    private static BPlusTree bPlusTree; // BPlusTree 객체를 static으로 관리
 
-    public static void main(String[] args) throws IOException, ClassNotFoundException {
+    public static void main(String[] args) {
+        String command = args[0]; // 첫 번째 인자는 함수 실행 명령어
+        String indexFile = args[1]; // 두 번째 인자는 인덱스 파일의 경로
         Scanner scanner = new Scanner(System.in);
+        try { // FileIO 등 예외발생 처리
+            switch (command) {
+                case "-c": // Creation
+                    int size = Integer.parseInt(args[2]); // 세 번째 인자는 B+Tree의 최대 크기
 
-        while (true) {
-            System.out.println("Input command ('quit' to exit)");
-            String[] commandLine = scanner.nextLine().split(" ");
-            if (commandLine[0].equals("quit"))
-                break;
-            if (commandLine.length < 5) {
-                System.out.println("모든 명령어를 입력하세요");
-                continue;
+                    FileIO.createIndexFile(indexFile);
+                    bPlusTree = new BPlusTree(size);
+
+                    FileIO.saveTree(indexFile, bPlusTree);
+                    System.out.println("Success to create");
+                    break;
+
+                case "-i": // Insertion
+                    String iDataFile = args[2]; // 세 번쨰 인자는 입력 데이터 파일의 경로
+
+                    bPlusTree = FileIO.loadTree(indexFile);
+                    if (bPlusTree == null) {
+                        System.out.println("인덱스 파일을 먼저 생성해주세요.");
+                        break;
+                    }
+
+                    List<int[]> dataList = FileIO.readDataFile(iDataFile);
+                    for (int[] pair : dataList) {
+                        bPlusTree.insert(pair[0], pair[1]);
+                    }
+
+                    FileIO.saveTree(indexFile, bPlusTree);
+                    System.out.println("Success to insert");
+                    break;
+
+                case "-d": // Deletion
+                    String dDataFile = args[2]; // 세 번째 인자는 삭제 키 파일의 경로
+
+                    bPlusTree = FileIO.loadTree(indexFile);
+                    if (bPlusTree == null) {
+                        System.out.println("인덱스 파일을 먼저 생성해주세요.");
+                        break;
+                    }
+
+                    List<Integer> keyList = FileIO.readDeleteFile(dDataFile);
+                    for (int key : keyList) {
+                        bPlusTree.delete(key);
+                    }
+
+                    FileIO.saveTree(indexFile, bPlusTree);
+                    System.out.println("Success to delete");
+                    break;
+
+                case "-s": // Single Key Search
+                    int searchKey = Integer.parseInt(args[2]); // 세 번째 인자는 검색할 키의 값
+
+                    bPlusTree = FileIO.loadTree(indexFile);
+                    if (bPlusTree == null) {
+                        System.out.println("인덱스 파일을 먼저 생성해주세요.");
+                        break;
+                    }
+
+                    Integer result = bPlusTree.search(searchKey);
+                    if (result != null)
+                        System.out.println("Success to search");
+                    break;
+
+                case "-r": // Ranged Search
+                    int startKey = Integer.parseInt(args[2]); // 세 번째 인자는 범위 검색을 시작할 키의 값
+                    int endKey = Integer.parseInt(args[3]); // 네 번째 인자는 범위 검색을 끝낼 키의 값
+
+                    bPlusTree = FileIO.loadTree(indexFile);
+                    if (bPlusTree == null) {
+                        System.out.println("인덱스 파일을 먼저 생성해주세요.");
+                        break;
+                    }
+
+                    List<Integer> results = bPlusTree.rangeSearch(startKey, endKey);
+                    if (results.isEmpty())
+                        // 범위 검색의 결과가 비어있으면 "NOT FOUND" 출력
+                        System.out.println("NOT FOUND");
+                    else
+                        System.out.println("Success to range search");
+                    break;
+
+                default:
+                    System.out.println("알 수 없는 명령어입니다.");
             }
-
-            String language = commandLine[0];
-            if (!language.equals("java")) {
-                System.out.println("언어를 java로 입력해주세요");
-                continue;
-            }
-            String program = commandLine[1];
-            if (!program.equals("bptree")) {
-                System.out.println("이 프로그램은 bptree입니다. 알맞은 프로그램 이름을 입력해주세요");
-                continue;
-            }
-
-            String command = commandLine[2];
-            String indexFile = commandLine[3];
-
-            try {
-                switch (command) {
-                    case "-c":
-                        int size = Integer.parseInt(commandLine[4]);
-                        FileIO.createIndexFile(indexFile);
-                        bPlusTree = new BPlusTree(size);
-                        FileIO.saveTree(indexFile, bPlusTree);
-                        System.out.println("Success to create");
-                        break;
-
-                    case "-i":
-                        String iDataFile = commandLine[4];
-
-                        if (bPlusTree == null) {
-                            System.out.println("인덱스 파일을 먼저 생성해주세요.");
-                            break;
-                        }
-                        bPlusTree = FileIO.loadTree(indexFile);
-
-                        List<int[]> dataList = FileIO.readDataFile(iDataFile);
-                        for (int[] pair : dataList) {
-                            bPlusTree.insert(pair[0], pair[1]);
-                        }
-                        FileIO.saveTree(indexFile, bPlusTree);
-                        System.out.println("Success to insert");
-                        break;
-
-                    case "-d":
-                        String dDataFile = commandLine[4];
-
-                        if (bPlusTree == null) {
-                            System.out.println("인덱스 파일을 먼저 생성해주세요.");
-                            break;
-                        }
-                        bPlusTree = FileIO.loadTree(indexFile);
-
-                        List<Integer> keyList = FileIO.readDeleteFile(dDataFile);
-                        for (int key : keyList) {
-                            bPlusTree.delete(key);
-                        }
-                        FileIO.saveTree(indexFile, bPlusTree);
-                        System.out.println("Success to delete");
-                        break;
-
-                    case "-s":
-                        int searchKey = Integer.parseInt(commandLine[4]);
-                        if (bPlusTree == null) {
-                            System.out.println("인덱스 파일을 먼저 생성해주세요.");
-                            break;
-                        }
-
-                        bPlusTree = FileIO.loadTree(indexFile);
-                        Integer result = bPlusTree.search(searchKey);
-                        break;
-
-                    case "-r":
-                        int startKey = Integer.parseInt(commandLine[4]);
-                        int endKey = Integer.parseInt(commandLine[5]);
-                        if (bPlusTree == null) {
-                            System.out.println("인덱스 파일을 먼저 생성해주세요.");
-                            break;
-                        }
-                        bPlusTree = FileIO.loadTree(indexFile);
-
-                        List<Integer> results = bPlusTree.rangeSearch(startKey, endKey);
-                        if (results == null)
-                            System.out.println("NOT FOUND");
-                        break;
-                    default:
-                        System.out.println("알 수 없는 명령어입니다.");
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         scanner.close();
         System.out.println("프로그램을 종료합니다.");

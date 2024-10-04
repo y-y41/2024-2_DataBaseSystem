@@ -30,17 +30,4 @@ public class BPlusTree implements Serializable {
     public List<Integer> rangeSearch(int startkey, int endKey) {
         return root.rangeSearch(startkey, endKey);
     }
-
-//    public void saveFile(String file) throws IOException {
-//        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file))) {
-//            out.writeObject(this);
-//            System.out.println("트리 상태가 저장됨");
-//        }
-//    }
-//
-//    public static BPlusTree loadFile(String file) throws IOException, ClassNotFoundException {
-//        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(file))) {
-//            return (BPlusTree) in.readObject();
-//        }
-//    }
 }
